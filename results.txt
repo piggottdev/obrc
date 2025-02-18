@@ -1,2 +1,3 @@
-Baseline runtime: ~ 2m 30s 000 ms
-Parallel reads from byte buffer (848c197f92c4e8fa0b6c064aaa38822f24838b2d): 0m 9s 546 ms
+Baseline runtime: ~ 2m 40s 000 ms
+Parallel reads from byte buffer (848c197f92c4e8fa0b6c064aaa38822f24838b2d): ~ 0m 9s 500 ms
+Custom double parsing (): ~ 0m 6s 100ms

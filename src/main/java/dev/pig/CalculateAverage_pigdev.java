@@ -81,13 +81,29 @@ public class CalculateAverage_pigdev {
             position++;
             mark = position;
 
-            while (chunk.get(++position) != '\n') {}
-            final byte[] reading = new byte[position - mark];
-            chunk.get(mark, reading);
+            // Parse the reading, knowing there is only 1DP and max 2 non-decimal digits
+            double reading;
+            boolean negative = chunk.get(position++) == '-';
+            if (negative) {
+                mark = position++;
+                reading = -(chunk.get(mark) - 48);
+                if (chunk.get(position) != '.') {
+                    reading = (reading*10) - (chunk.get(position) - 48);
+                    position++;
+                }
+                reading -= (double) (chunk.get(++position) - 48) /10;
+            } else {
+                reading = (chunk.get(mark) - 48);
+                if (chunk.get(position) != '.') {
+                    reading = (reading*10) + (chunk.get(position) - 48);
+                    position++;
+                }
+                reading += (double) (chunk.get(++position) - 48) /10;
+            }
 
-            stations.computeIfAbsent(new String(name), k -> new Entry()).addReading(Double.parseDouble(new String(reading)));
+            stations.computeIfAbsent(new String(name), k -> new Entry()).addReading(reading);
 
-            mark = position + 1;
+            mark = position + 2;
         }
 
         return stations;
@@ -96,7 +112,7 @@ public class CalculateAverage_pigdev {
     private static class Entry {
 
         private long count = 0;
-        private double sum = 0.0;
+        private double sum = 0;
         private double max = Double.NEGATIVE_INFINITY;
         private double min = Double.POSITIVE_INFINITY;
 
