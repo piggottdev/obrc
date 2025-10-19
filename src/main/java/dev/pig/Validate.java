@@ -11,7 +11,7 @@ public class Validate {
     public static void main(final String[] args) {
 
         try {
-            final String result = CalculateAverage_pigdev.run();
+            final String result = CalculateAverage.run();
             System.out.println(Files.readString(Path.of(EXPECTED)).equals(result) ? "PASS" : "FAIL");
         } catch (IOException ioException) {
             System.out.println("FAILED: IOException:");

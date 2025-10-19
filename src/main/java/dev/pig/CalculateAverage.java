@@ -7,7 +7,7 @@ import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CalculateAverage_pigdev {
+public class CalculateAverage {
 
     private static final String FILE = "./measurements.txt";
 
@@ -19,7 +19,7 @@ public class CalculateAverage_pigdev {
         final RandomAccessFile file = new RandomAccessFile(FILE, "r");
 
         final Map<String, Entry> result = chunkify(file).parallelStream()
-                .flatMap(buf -> CalculateAverage_pigdev.processChunk(buf).entrySet().stream())
+                .flatMap(buf -> CalculateAverage.processChunk(buf).entrySet().stream())
                 .collect(Collectors.<Map.Entry<String, Entry>, String, Entry, TreeMap<String, Entry>>toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,

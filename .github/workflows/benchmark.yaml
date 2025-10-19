@@ -1,0 +1,35 @@
+name: Benchmark 1BRC
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build project
+        run: |
+          javac -d out $(find src -name "*.java")
+
+      - name: Run benchmark
+        run: |
+          cd out
+          java dev.pig.Benchmark
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-history
+          path: results.csv
