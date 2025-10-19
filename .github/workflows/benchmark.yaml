@@ -31,5 +31,5 @@ jobs:
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-history
-          path: results.csv
+          name: results
+          path: /home/runner/work/obrc/obrc/out/results.csv

@@ -26,7 +26,7 @@ public class Benchmark {
         System.out.println(result);
 
         // Save the benchmark results
-        System.out.println("Saving benchmark results to" + Paths.get("results.csv").toAbsolutePath());
+        System.out.println("Saving benchmark results to " + Paths.get("results.csv").toAbsolutePath());
         Files.writeString(
                 Paths.get("results.csv"),
                 result
