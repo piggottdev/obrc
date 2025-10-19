@@ -25,6 +25,7 @@ public class Benchmark {
         final String result = (elapsed/60000) + "m " + ((elapsed/1000)%60) + "s " + (elapsed%1000) + " ms";
 
         // Save the benchmark results
+        System.out.println("Saving benchmark results to results.csv");
         Files.writeString(
                 Paths.get("results.csv"),
                 result
