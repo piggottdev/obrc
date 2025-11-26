@@ -1,6 +1,6 @@
-results.csv
-measurements.out
 measurements.txt
+results.out
+results_baseline.out
 
 target/
 !.mvn/wrapper/maven-wrapper.jar

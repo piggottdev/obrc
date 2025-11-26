@@ -1,65 +1,46 @@
-package dev.pig;
+package dev.pig.obrc.pipeline;
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class CreateMeasurements {
+public class Generate {
 
-    private static final Path MEASUREMENT_FILE = Path.of("./measurements.txt");
+    private static final int ROWS = 1_000_000_000;
+    private static final String FILE = "./measurements.txt";
 
-    private record WeatherStation(String id, double meanTemperature) {
-        double measurement() {
-            double m = ThreadLocalRandom.current().nextGaussian(meanTemperature, 10);
-            return Math.round(m * 10.0) / 10.0;
-        }
+    public static void main(final String[] args) throws IOException {
+
+        final int rows = args.length >= 1 ? Integer.parseInt(args[0]) : ROWS;
+        final String file = args.length >= 2 ? args[1] : FILE;
+
+        createMeasurementsIfNotExists(rows, file);
     }
 
-    public static void main(String[] args) throws Exception {
-        long start = System.currentTimeMillis();
+    static void createMeasurementsIfNotExists(final int rows, final String file) throws IOException {
+        createMeasurementsIfNotExists(rows, Path.of(file));
+    }
 
-        if (args.length != 1) {
-            System.out.println("Usage: create_measurements.sh <number of records to create>");
-            System.exit(1);
+    static void createMeasurementsIfNotExists(final int rows, final Path file) throws IOException {
+        if (Files.exists(file)) {
+            System.out.println("Measurements file already exists, skipping generate");
+            return;
         }
+        createMeasurements(rows, file);
+    }
 
-        int size = 0;
-        try {
-            size = Integer.parseInt(args[0]);
-        }
-        catch (NumberFormatException e) {
-            System.out.println("Invalid value for <number of records to create>");
-            System.out.println("Usage: CreateMeasurements <number of records to create>");
-            System.exit(1);
-        }
+    static void createMeasurements(final int rows, final Path file) throws IOException {
+        final long start = System.currentTimeMillis();
 
-        // @formatter:off
-        // data from https://en.wikipedia.org/wiki/List_of_cities_by_average_temperature;
-        // converted using https://wikitable2csv.ggor.de/
-        // brought to form using DuckDB:
-        // D copy (
-        //     select City, regexp_extract(Year,'(.*)\n.*', 1) as AverageTemp
-        //     from (
-        //         select City,Year
-        //         from read_csv_auto('List_of_cities_by_average_temperature_1.csv', header = true)
-        //         union
-        //         select City,Year
-        //         from read_csv_auto('List_of_cities_by_average_temperature_2.csv', header = true)
-        //         union
-        //         select City,Year
-        //         from read_csv_auto('List_of_cities_by_average_temperature_3.csv', header = true)
-        //         union
-        //         select City,Year
-        //         from read_csv_auto('List_of_cities_by_average_temperature_4.csv', header = true)
-        //         union
-        //         select City,Year
-        //         from read_csv_auto('List_of_cities_by_average_temperature_5.csv', header = true)
-        //         )
-        // ) TO 'output.csv' (HEADER, DELIMITER ',');
-        // @formatter:on
-        List<WeatherStation> stations = List.of(
+        System.out.println("Generating measurements file...");
+
+        Files.deleteIfExists(file);
+        Files.createFile(file);
+
+        final List<WeatherStation> stations = List.of(
                 new WeatherStation("Abha", 18.0),
                 new WeatherStation("Abidjan", 26.0),
                 new WeatherStation("Abéché", 29.4),
@@ -474,8 +455,8 @@ public class CreateMeasurements {
                 new WeatherStation("Zanzibar City", 26.0),
                 new WeatherStation("Zürich", 9.3));
 
-        try (BufferedWriter bw = Files.newBufferedWriter(MEASUREMENT_FILE)) {
-            for (int i = 0; i < size; i++) {
+        try (final BufferedWriter bw = Files.newBufferedWriter(file)) {
+            for (int i = 0; i < rows; i++) {
                 if (i > 0 && i % 50_000_000 == 0) {
                     System.out.printf("Wrote %,d measurements in %s ms%n", i, System.currentTimeMillis() - start);
                 }
@@ -485,6 +466,14 @@ public class CreateMeasurements {
                 bw.write('\n');
             }
         }
-        System.out.printf("Created file with %,d measurements in %s ms%n", size, System.currentTimeMillis() - start);
+        System.out.printf("Created file with %,d measurements in %s ms%n", rows, System.currentTimeMillis() - start);
     }
+
+    private record WeatherStation(String id, double meanTemperature) {
+        double measurement() {
+            final double m = ThreadLocalRandom.current().nextGaussian(meanTemperature, 10);
+            return Math.round(m * 10.0) / 10.0;
+        }
+    }
+
 }

@@ -1,4 +1,4 @@
-package dev.pig;
+package dev.pig.obrc;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -9,14 +9,17 @@ import java.util.stream.Collectors;
 
 public class CalculateAverage {
 
-    private static final String FILE = "./measurements.txt";
+    private static final String INPUT = "./measurements.txt";
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(run());
+    public static void main(final String[] args) throws IOException {
+
+        final String input = args.length >= 1 ? args[0] : INPUT;
+
+        System.out.println(run(input));
     }
 
-    static String run() throws IOException {
-        final RandomAccessFile file = new RandomAccessFile(FILE, "r");
+    public static String run(final String input) throws IOException {
+        final RandomAccessFile file = new RandomAccessFile(input, "r");
 
         final Map<String, Entry> result = chunkify(file).parallelStream()
                 .flatMap(buf -> CalculateAverage.processChunk(buf).entrySet().stream())
