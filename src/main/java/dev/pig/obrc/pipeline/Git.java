@@ -5,7 +5,7 @@ import java.io.IOException;
 public class Git {
 
     static String commitMessage() throws IOException, InterruptedException {
-        return exec("git log -1 pretty=%s");
+        return exec("git log -1 --pretty=%B");
     }
 
     static String commitHash() throws IOException, InterruptedException {
