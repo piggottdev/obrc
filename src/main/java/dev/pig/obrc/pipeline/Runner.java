@@ -9,7 +9,7 @@ public class Runner {
     private static final String EXPECTED = "./results_baseline.out";
     private static final String RESULTS = "./results.csv";
 
-    private static final int ROWS = 1_000_000_00;
+    private static final int ROWS = 300_000_000;
 
     public static void main(final String[] args) throws Exception {
 
@@ -30,8 +30,33 @@ public class Runner {
         Validate.compare(OUTPUT, EXPECTED);
 
         // Write results
-        // - Calculate CSV row
+        final String commitHash = Git.commitHash();
+        final String commitMsg = Git.commitMessage();
+        final ResultRow row = new ResultRow(commitHash, commitMsg, elapsed, baseline);
+        System.out.println(row);
         // - Append to CSV file
+    }
+
+    private static class ResultRow {
+
+        private final String commit;
+        private final String description;
+        private final double runtime;
+        private final double difference;
+        private final double improvement;
+
+        private ResultRow(final String commit, final String description, final long runtime, final long baseline) {
+            this.commit = commit;
+            this.description = description;
+            this.runtime = runtime / 1000.0;
+            this.difference = this.runtime - (baseline / 1000.0);
+            this.improvement =  (1.0 - (runtime*1.0)/baseline) * 100.0;
+        }
+
+        public String toString() {
+            return String.format("%s,%s,%.3fs,%.3fs,%.2f%%%n",this.commit, this.description, this.runtime, this.difference, this.improvement);
+        }
+
     }
 
 }
