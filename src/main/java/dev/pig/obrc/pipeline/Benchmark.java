@@ -12,7 +12,6 @@ public class Benchmark {
     }
 
     static long run(final Calculator calculator, final String input, final String output) throws IOException {
-
         final long start = System.currentTimeMillis();
         final String result = calculator.run(input);
         final long elapsed = System.currentTimeMillis() - start;

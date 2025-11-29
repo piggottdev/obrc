@@ -7,9 +7,9 @@ Challenge repo: https://github.com/gunnarmorling/1brc
 
 ## Results
 
-<!-- RESULTS-TABLE-START -->
+<!-- RESULTS_START -->
 This will be replaced automatically.
-<!-- RESULTS-TABLE-END -->
+<!-- RESULTS_END -->
 
 ## The Challenge
 
