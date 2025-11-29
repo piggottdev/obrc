@@ -11,9 +11,9 @@ public class Runner {
     private static final String INPUT = "./measurements.txt";
     private static final String OUTPUT = "./results.out";
     private static final String EXPECTED = "./results_baseline.out";
-    private static final String RESULTS = "./results.csv";
+    private static final String RESULTS = "../results.csv";
 
-    private static final int ROWS = 300_000_000;
+    private static final int ROWS = 500_000_000;
 
     public static void main(final String[] args) throws Exception {
 
