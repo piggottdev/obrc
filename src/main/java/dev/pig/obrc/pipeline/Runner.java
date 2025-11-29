@@ -39,7 +39,7 @@ public class Runner {
         final String commitMsg = Git.commitMessage();
         System.out.printf("Writing results to %s...%n", RESULTS);
         final ResultRow row = new ResultRow(commitHash, commitMsg, elapsed, baseline);
-        Files.writeString(Paths.get(RESULTS), row.toString(),
+        Files.writeString(Paths.get(RESULTS), row +"\n",
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
