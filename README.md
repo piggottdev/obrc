@@ -5,6 +5,12 @@ Grab all your (virtual) threads, reach out to SIMD, optimize your GC, or pull an
 
 Challenge repo: https://github.com/gunnarmorling/1brc
 
+## Results
+
+<!-- RESULTS-TABLE-START -->
+This will be replaced automatically.
+<!-- RESULTS-TABLE-END -->
+
 ## The Challenge
 
 The text file contains temperature values for a range of weather stations.

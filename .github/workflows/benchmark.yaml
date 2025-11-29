@@ -28,8 +28,10 @@ jobs:
           cd out
           java dev.pig.obrc.pipeline.Runner
 
-      - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
-        with:
-          name: results
-          path: /home/runner/work/obrc/obrc/out/results.csv
+      - name: Commit Results
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add results.csv
+          git commit -m "Update benchmark results [skip ci]" || echo "No changes"
+          git push

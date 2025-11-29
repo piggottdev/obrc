@@ -2,6 +2,10 @@ package dev.pig.obrc.pipeline;
 
 import dev.pig.obrc.CalculateAverage;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 public class Runner {
 
     private static final String INPUT = "./measurements.txt";
@@ -17,12 +21,12 @@ public class Runner {
         Generate.createMeasurementsIfNotExists(ROWS, INPUT);
 
         // Run Benchmark against baseline:
-        System.out.println("Starting baseline benchmark");
+        System.out.println("Starting baseline benchmark...");
         final long baseline = Benchmark.run(Calculate_baseline::run, INPUT, EXPECTED);
         System.out.printf("Baseline benchmark took %,dms%n", baseline);
 
         // Run Benchmark against current:
-        System.out.println("Starting benchmark");
+        System.out.println("Starting benchmark...");
         final long elapsed = Benchmark.run(CalculateAverage::run, INPUT, OUTPUT);
         System.out.printf("Benchmark took %,dms%n", elapsed);
 
@@ -30,11 +34,13 @@ public class Runner {
         Validate.compare(OUTPUT, EXPECTED);
 
         // Write results
+        System.out.println("Getting Git commit information...");
         final String commitHash = Git.commitHash();
         final String commitMsg = Git.commitMessage();
+        System.out.printf("Writing results to %s...%n", RESULTS);
         final ResultRow row = new ResultRow(commitHash, commitMsg, elapsed, baseline);
-        System.out.println(row);
-        // - Append to CSV file
+        Files.writeString(Paths.get(RESULTS), row.toString(),
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
     private static class ResultRow {
