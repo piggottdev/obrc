@@ -8,7 +8,11 @@ Challenge repo: https://github.com/gunnarmorling/1brc
 ## Results
 
 <!-- RESULTS_START -->
-This will be replaced automatically.
+
+| Commit | Message | Runtime | Difference | Improvement |
+|--------|---------|---------|------------|-------------|
+| 48fd647 | Update README on commit | 13.974s | -83.126s | 85.61% |
+
 <!-- RESULTS_END -->
 
 ## The Challenge
