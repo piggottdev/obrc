@@ -20,7 +20,7 @@ public class Generate {
         createMeasurementsIfNotExists(rows, file);
     }
 
-    static void createMeasurementsIfNotExists(final int rows, final String file) throws IOException {
+    public static void createMeasurementsIfNotExists(final int rows, final String file) throws IOException {
         createMeasurementsIfNotExists(rows, Path.of(file));
     }
 

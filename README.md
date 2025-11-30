@@ -43,45 +43,29 @@ The task is to write a Java program which reads the file, calculates the min, me
 
 ## Prerequisites
 
-[Java 21](https://openjdk.org/projects/jdk/21/) must be installed on your system.
+- [Java 21](https://openjdk.org/projects/jdk/21/) must be installed on your system.
+- [Maven](https://maven.apache.org/) installed to run mvn commands - not required to run.
 
 ## Running the Challenge
 
-This repository contains two programs:
+The solution implementation class can be found at [`dev.pig.obrc.CalculateAverage`](src/main/java/dev/pig/obrc/CalculateAverage.java). 
+Solutions should be placed inside the `run` function, without editing the function signature.
+The function should return the expected ouput as a string.
 
-* `dev.morling.onebrc.CreateMeasurements` (invoked via _create\_measurements.sh_): Creates the file _measurements.txt_ in the root directory of this project with a configurable number of random measurement values
-* `dev.morling.onebrc.CalculateAverage` (invoked via _calculate\_average\_baseline.sh_): Calculates the average values for the file _measurements.txt_
+The [`dev.pig.obrc.Benchmark`](src/main/java/dev/pig/obrc/Benchmark.java) class has been provided for solution validation and benchmarking.
+It will:
+- Generate an input file if not present at [`measurements.txt`](measurements.txt).
+- Run a baseline benchmark if expected output file not present at [`results_baseline.out`](results_baseline.out).
+- Run solution benchmark, generates output file for inspection at [`results.out`](results.out).
+- Compares output files to validate solution correctness.
 
-Execute the following steps to run the challenge:
+This can also be run using the convenience Maven script:
+```bash
+mvn clean install
+```
 
-1. Build the project using Apache Maven:
+### CI
 
-    ```
-    ./mvnw clean verify
-    ```
-
-2. Create the measurements file with 1B rows (just once):
-
-    ```
-    ./create_measurements.sh 1000000000
-    ```
-
-    This will take a few minutes.
-    **Attention:** the generated file has a size of approx. **12 GB**, so make sure to have enough diskspace.
-
-    If you're running the challenge with a non-Java language, there's a non-authoritative Python script to generate the measurements file at `src/main/python/create_measurements.py`. The authoritative method for generating the measurements is the Java program `dev.morling.onebrc.CreateMeasurements`.
-
-3. Calculate the average measurement values:
-
-    ```
-    ./calculate_average_baseline.sh
-    ```
-
-    The provided naive example implementation uses the Java streams API for processing the file and completes the task in ~2 min on environment used for [result evaluation](#evaluating-results).
-    It serves as the base line for comparing your own implementation.
-
-4. Optimize the heck out of it:
-
-    Adjust the `CalculateAverage` program to speed it up, in any way you see fit (just sticking to a few rules described below).
-    Options include parallelizing the computation, using the (incubating) Vector API, memory-mapping different sections of the file concurrently, using AppCDS, GraalVM, CRaC, etc. for speeding up the application start-up, choosing and tuning the garbage collector, and much more.
+A [GitHub Actions Pipeline](.github/workflows/benchmark.yaml) and Java [Runner](src/main/java/dev/pig/obrc/pipeline/Runner.java) have been provided to allow for easy results tracking in a repo.
+On push to main, the benchmark runner will run the same steps as the local pipeline and also automatically update [results CSV](results.csv) and the results table in the [readme](README.md).
 

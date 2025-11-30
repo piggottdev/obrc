@@ -7,11 +7,11 @@ import java.nio.file.Path;
 public class Benchmark {
 
     @FunctionalInterface
-    interface Calculator{
+    public interface Calculator {
         String run(final String input) throws IOException;
     }
 
-    static long run(final Calculator calculator, final String input, final String output) throws IOException {
+    public static long run(final Calculator calculator, final String input, final String output) throws IOException {
         final long start = System.currentTimeMillis();
         final String result = calculator.run(input);
         final long elapsed = System.currentTimeMillis() - start;

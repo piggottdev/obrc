@@ -20,7 +20,7 @@ public class Calculate_baseline {
         System.out.println(run(input));
     }
 
-    static String run(final String input) throws IOException {
+    public static String run(final String input) throws IOException {
         return run(Path.of(input));
     }
 

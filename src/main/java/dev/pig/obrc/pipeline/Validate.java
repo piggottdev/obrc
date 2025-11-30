@@ -17,7 +17,7 @@ public class Validate {
         compare(actual, expected);
     }
 
-    static void compare(final String actual, final String expected) throws IOException {
+    public static void compare(final String actual, final String expected) throws IOException {
         compare(Path.of(actual), Path.of(expected));
     }
 
