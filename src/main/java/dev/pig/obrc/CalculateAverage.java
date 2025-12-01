@@ -1,11 +1,12 @@
 package dev.pig.obrc;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Collector;
+
+import static java.util.stream.Collectors.groupingBy;
 
 public class CalculateAverage {
 
@@ -18,131 +19,55 @@ public class CalculateAverage {
         System.out.println(run(input));
     }
 
-    public static String run(final String input) throws IOException {
-        final RandomAccessFile file = new RandomAccessFile(input, "r");
-
-        final Map<String, Entry> result = chunkify(file).parallelStream()
-                .flatMap(buf -> CalculateAverage.processChunk(buf).entrySet().stream())
-                .collect(Collectors.<Map.Entry<String, Entry>, String, Entry, TreeMap<String, Entry>>toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        Entry::aggregate,
-                        TreeMap::new
-                ));
-
-        return result.toString();
-    }
-
-    private static List<MappedByteBuffer> chunkify(final RandomAccessFile file) throws IOException {
-
-        int chunkCount = Runtime.getRuntime().availableProcessors();
-
-        final long fileSize = file.length();
-        final long chunkSize = Math.min(Integer.MAX_VALUE - 1000, fileSize / chunkCount);
-        chunkCount = ((int) (fileSize / chunkSize)) + 1;
-
-        final List<MappedByteBuffer> chunks = new ArrayList<>(chunkCount);
-
-        long head = 0L;
-        while (head < fileSize) {
-            long tail = head + chunkSize;
-            if (tail > fileSize) {
-                tail = fileSize;
-            }
-            else {
-                file.seek(tail);
-                while (file.read() != '\n') {
-                    tail++;
-                }
-                tail++;
-            }
-            final MappedByteBuffer mbb = file.getChannel().map(FileChannel.MapMode.READ_ONLY, head, tail - head);
-            chunks.add(mbb);
-            head = tail;
-        }
-
-        return chunks;
-    }
-
-    private static Map<String, Entry> processChunk(final MappedByteBuffer chunk) {
-
-        final Map<String, Entry> stations = new HashMap<>();
-
-        int capacity = chunk.capacity();
-        int mark = 0;
-
-        while (mark != capacity) {
-
-            int position = mark;
-
-            // Find the semicolon, read the name station name
-            while (chunk.get(++position) != ';') {}
-            final byte[] name = new byte[position - mark];
-            chunk.get(mark, name);
-
-            // Move the mark to the first digit of the temperature
-            position++;
-            mark = position;
-
-            // Parse the reading, knowing there is only 1DP and max 2 non-decimal digits
-            double reading;
-            boolean negative = chunk.get(position++) == '-';
-            if (negative) {
-                mark = position++;
-                reading = -(chunk.get(mark) - 48);
-                if (chunk.get(position) != '.') {
-                    reading = (reading*10) - (chunk.get(position) - 48);
-                    position++;
-                }
-                reading -= (double) (chunk.get(++position) - 48) /10;
-            } else {
-                reading = (chunk.get(mark) - 48);
-                if (chunk.get(position) != '.') {
-                    reading = (reading*10) + (chunk.get(position) - 48);
-                    position++;
-                }
-                reading += (double) (chunk.get(++position) - 48) /10;
-            }
-
-            stations.computeIfAbsent(new String(name), k -> new Entry()).addReading(reading);
-
-            mark = position + 2;
-        }
-
-        return stations;
-    }
-
-    private static class Entry {
-
-        private long count = 0;
-        private double sum = 0;
-        private double max = Double.NEGATIVE_INFINITY;
+    private static class MeasurementAggregator {
         private double min = Double.POSITIVE_INFINITY;
+        private double max = Double.NEGATIVE_INFINITY;
+        private double sum;
+        private long count;
+    }
 
-        private void addReading(final double val) {
-            count++;
-            sum += val;
-            max = Math.max(val, max);
-            min = Math.min(val, min);
+    private record Measurement(String station, double value) {
+        private Measurement(String[] parts) {
+            this(parts[0], Double.parseDouble(parts[1]));
         }
+    }
 
-        private Entry aggregate(final Entry other) {
-            count += other.count;
-            sum += other.sum;
-            max = Math.max(max, other.max);
-            min = Math.min(min, other.min);
-            return this;
-        }
+    private record ResultRow(double min, double mean, double max) {
 
-        @Override
         public String toString() {
-            return round(min) + "/" + round(sum / count) + "/" + round(max);
+            return round(min) + "/" + round(mean) + "/" + round(max);
         }
 
-        private static double round(final double val) {
-            return Math.round(val * 10.0) / 10.0;
+        private double round(double value) {
+            return Math.round(value * 10.0) / 10.0;
         }
+    }
 
+    public static String run(final String input) throws IOException {
+        final Collector<Measurement, MeasurementAggregator, ResultRow> collector = Collector.of(
+                MeasurementAggregator::new,
+                (a, m) -> {
+                    a.min = Math.min(a.min, m.value);
+                    a.max = Math.max(a.max, m.value);
+                    a.sum += m.value;
+                    a.count++;
+                },
+                (agg1, agg2) -> {
+                    var res = new MeasurementAggregator();
+                    res.min = Math.min(agg1.min, agg2.min);
+                    res.max = Math.max(agg1.max, agg2.max);
+                    res.sum = agg1.sum + agg2.sum;
+                    res.count = agg1.count + agg2.count;
+
+                    return res;
+                },
+                agg -> new ResultRow(agg.min, (Math.round(agg.sum * 10.0) / 10.0) / agg.count, agg.max));
+
+        final Map<String, ResultRow> measurements = new TreeMap<>(Files.lines(Paths.get(input))
+                .map(l -> new Measurement(l.split(";")))
+                .collect(groupingBy(Measurement::station, collector)));
+
+        return measurements.toString();
     }
 
 }

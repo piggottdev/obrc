@@ -7,11 +7,12 @@ Challenge repo: https://github.com/gunnarmorling/1brc
 
 ## Results
 
+CI Results are from 500_000_000 row runs.
+
 <!-- RESULTS_START -->
 
 | Commit | Message | Runtime | Difference | Improvement |
 |--------|---------|---------|------------|-------------|
-| 48fd647 | Update README on commit | 13.974s | -83.126s | 85.61% |
 
 <!-- RESULTS_END -->
 
@@ -50,7 +51,7 @@ The task is to write a Java program which reads the file, calculates the min, me
 
 The solution implementation class can be found at [`dev.pig.obrc.CalculateAverage`](src/main/java/dev/pig/obrc/CalculateAverage.java). 
 Solutions should be placed inside the `run` function, without editing the function signature.
-The function should return the expected ouput as a string.
+The function should return the expected output as a string.
 
 The [`dev.pig.obrc.Benchmark`](src/main/java/dev/pig/obrc/Benchmark.java) class has been provided for solution validation and benchmarking.
 It will:
