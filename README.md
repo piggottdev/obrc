@@ -13,7 +13,7 @@ CI Results are from 500_000_000 row runs.
 
 | Commit | Message | Runtime | Difference | Improvement |
 |--------|---------|---------|------------|-------------|
-| f66b04b | Merge branch 'main' of github.com:PiggottDev/obrc | 89.278s | -3.373s | 3.64% |
+| 7de0059 | Baseline | 99.066s | -2.504s | 2.47% |
 
 <!-- RESULTS_END -->
 
