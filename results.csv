@@ -1,2 +1,3 @@
 Commit,Description,Runtime,Difference,Improvement
 7de0059,Baseline,99.066s,0s,0%
+cab56e0,Multi-threaded,25.545s,-70.602s,73.43%

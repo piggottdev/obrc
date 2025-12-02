@@ -13,7 +13,8 @@ CI Results are from 500_000_000 row runs.
 
 | Commit | Message | Runtime | Difference | Improvement |
 |--------|---------|---------|------------|-------------|
-| 7de0059 | Baseline | 99.066s | -2.504s | 2.47% |
+| 7de0059 | Baseline | 99.066s | 0.000s | 0.00% |
+| cab56e0 | Multi-threaded | 25.545s | -70.602s | 73.43% |
 
 <!-- RESULTS_END -->
 
