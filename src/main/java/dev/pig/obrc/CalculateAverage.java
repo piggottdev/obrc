@@ -87,15 +87,29 @@ public class CalculateAverage {
             final byte[] name =  new byte[(chunk.position()-1) - nameStart];
             chunk.get(nameStart, name);
 
-            // Mark the start of the temperature reading
-            final int tempStart = chunk.position();
-            // Move the position to one after the newline
-            while (chunk.get() != '\n') {}
-            // Grab the temperature into a byte slice
-            final byte[] temp =  new byte[(chunk.position()-1) - tempStart];
-            chunk.get(tempStart, temp);
+            // Parse the temperature reading, can be negative, 1 or 2 integer digits, 1 DP
+            double temp;
+            // Check if the first character is a minus
+            // If not move the head back one
+            final boolean negative = chunk.get() == '-';
+            if (!negative) {
+                chunk.position(chunk.position()-1);
+            }
+            // Parse the first digit
+            temp = chunk.get() - 48;
+            // Parse second digit, if present
+            byte sd = chunk.get();
+            if (sd != '.') {
+                temp = (temp*10) + (sd-48);
+                chunk.get(); // Move past the point
+            }
+            temp += (double) (chunk.get() - 48) / 10;
+            if (negative) {
+                temp *= -1.0;
+            }
+            stations.computeIfAbsent(new String(name), k -> new Entry()).add(temp);
 
-            stations.computeIfAbsent(new String(name), k -> new Entry()).add(Double.parseDouble(new String(temp)));
+            chunk.get(); // Skip the new line character
         }
 
         return stations;
