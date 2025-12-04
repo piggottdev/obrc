@@ -4,13 +4,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
 
 public class CalculateAverage {
 
