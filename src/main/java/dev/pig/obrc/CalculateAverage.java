@@ -77,39 +77,43 @@ public class CalculateAverage {
 
         final Map<String, Entry> stations = new HashMap<>();
 
-        while (chunk.position() < chunk.capacity()) {
+        final int cap = chunk.capacity();
+        int pos = chunk.position();
+
+        while (pos < cap) {
 
             // Mark the start of the line
-            final int nameStart = chunk.position();
+            final int nameStart = pos;
             // Move the position to one after the semicolon
-            while (chunk.get() != ';') {}
+            while (chunk.get(pos++) != ';') {}
             // Grab the name into a byte slice
-            final byte[] name =  new byte[(chunk.position()-1) - nameStart];
+            final byte[] name =  new byte[(pos-1) - nameStart];
             chunk.get(nameStart, name);
 
             // Parse the temperature reading, can be negative, 1 or 2 integer digits, 1 DP
             double temp;
             // Check if the first character is a minus
             // If not move the head back one
-            final boolean negative = chunk.get() == '-';
-            if (!negative) {
-                chunk.position(chunk.position()-1);
+            final boolean negative = chunk.get(pos) == '-';
+            if (negative) {
+                pos++;
             }
             // Parse the first digit
-            temp = chunk.get() - 48;
+            temp = chunk.get(pos++) - 48;
             // Parse second digit, if present
-            byte sd = chunk.get();
+            byte sd = chunk.get(pos++);
             if (sd != '.') {
                 temp = (temp*10) + (sd-48);
-                chunk.get(); // Move past the point
+               pos++;
             }
-            temp += (double) (chunk.get() - 48) / 10;
+            // Parse the decimal digit
+            temp += (double) (chunk.get(pos++) - 48) / 10;
             if (negative) {
-                temp *= -1.0;
+                temp = -temp;
             }
             stations.computeIfAbsent(new String(name), k -> new Entry()).add(temp);
 
-            chunk.get(); // Skip the new line character
+            pos++; // Skip the new line character
         }
 
         return stations;
