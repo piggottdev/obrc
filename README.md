@@ -16,6 +16,7 @@ CI Results are from 500_000_000 row runs.
 | 7de0059 | Baseline | 99.066s | 0.000s | 0.00% |
 | cab56e0 | Multi-threaded | 25.545s | -70.602s | 73.43% |
 | 94f84ac | Custom Float Parsing | 12.888s | -77.123s | 85.68% |
+| 6aa3789 | Merge branch 'main' of github.com:PiggottDev/obrc | 14.208s | -75.788s | 84.21% |
 
 <!-- RESULTS_END -->
 
