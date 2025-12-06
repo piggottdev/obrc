@@ -20,6 +20,7 @@ CI Results are from 500_000_000 row runs.
 | 3aa9ba7 | Relative Buffer Operation | 13.156s | -77.239s | 85.45% |
 | 01ebf9d | Integer Temperatures | 14.422s | -83.308s | 85.24% |
 | 0e4e52e | One Less Subtraction Per Temperature | 13.776s | -76.724s | 84.78% |
+| e61cb9f | Brancless Temperature Parsing | 12.992s | -82.187s | 86.35% |
 
 <!-- RESULTS_END -->
 
