@@ -83,7 +83,7 @@ public class CalculateAverage {
             chunk.get(nameStart, name);
 
             // Parse the temperature reading, can be negative, 1 or 2 integer digits, 1 DP
-            double temp;
+            int temp;
             // Check if the first character is a minus
             // If not move the head back one
             final boolean negative = chunk.get() == '-';
@@ -98,9 +98,9 @@ public class CalculateAverage {
                 temp = (temp*10) + (sd-48);
                 chunk.get(); // Move past the point
             }
-            temp += (double) (chunk.get() - 48) / 10;
+            temp = (temp*10) + (chunk.get()-48);
             if (negative) {
-                temp *= -1.0;
+                temp = -temp;
             }
             stations.computeIfAbsent(new String(name), k -> new Entry()).add(temp);
 
@@ -112,12 +112,12 @@ public class CalculateAverage {
 
     private static class Entry {
 
-        private long count = 0;
-        private double sum = 0;
-        private double max = Double.NEGATIVE_INFINITY;
-        private double min = Double.POSITIVE_INFINITY;
+        private int count = 0;
+        private long sum = 0;
+        private int max = Integer.MIN_VALUE;
+        private int min = Integer.MAX_VALUE;
 
-        private Entry add(final double val) {
+        private Entry add(final int val) {
             this.count++;
             this.sum += val;
             this.max = Math.max(this.max, val);
@@ -135,11 +135,15 @@ public class CalculateAverage {
 
         @Override
         public String toString() {
-            return round(min) + "/" + round(sum / count) + "/" + round(max);
+            return round(min) + "/" + roundAverage(sum, count) + "/" + round(max);
         }
 
-        private static double round(final double val) {
-            return Math.round(val * 10.0) / 10.0;
+        private static double round(final int val) {
+            return (double) (val) / 10.0;
+        }
+
+        private static double roundAverage(final long sum, final int count) {
+            return Math.round((double) sum / (double) count) / 10.0;
         }
 
     }
