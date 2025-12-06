@@ -19,6 +19,7 @@ CI Results are from 500_000_000 row runs.
 | 2ab3fe9 | Absolute Buffer Operations | 14.500s | -73.144s | 83.46% |
 | 3aa9ba7 | Relative Buffer Operation | 13.156s | -77.239s | 85.45% |
 | 01ebf9d | Integer Temperatures | 14.422s | -83.308s | 85.24% |
+| 0e4e52e | One Less Subtraction Per Temperature | 13.776s | -76.724s | 84.78% |
 
 <!-- RESULTS_END -->
 
