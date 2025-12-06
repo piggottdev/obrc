@@ -91,14 +91,14 @@ public class CalculateAverage {
                 chunk.position(chunk.position()-1);
             }
             // Parse the first digit
-            temp = chunk.get() - 48;
+            temp = chunk.get();
             // Parse second digit, if present
             byte sd = chunk.get();
             if (sd != '.') {
-                temp = (temp*10) + (sd-48);
+                temp = (temp-48)*10 + sd;
                 chunk.get(); // Move past the point
             }
-            temp = (temp*10) + (chunk.get()-48);
+            temp = (temp*10) + chunk.get() - 528;
             if (negative) {
                 temp = -temp;
             }
