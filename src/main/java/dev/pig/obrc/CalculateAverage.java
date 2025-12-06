@@ -74,6 +74,8 @@ public class CalculateAverage {
 
         while (chunk.position() < chunk.capacity()) {
 
+            // Parse the station name - UTF8 string, delimited by ;
+
             // Mark the start of the line
             final int nameStart = chunk.position();
             // Move the position to one after the semicolon
@@ -82,29 +84,26 @@ public class CalculateAverage {
             final byte[] name =  new byte[(chunk.position()-1) - nameStart];
             chunk.get(nameStart, name);
 
-            // Parse the temperature reading, can be negative, 1 or 2 integer digits, 1 DP
-            int temp;
-            // Check if the first character is a minus
-            // If not move the head back one
-            final boolean negative = chunk.get() == '-';
-            if (!negative) {
-                chunk.position(chunk.position()-1);
-            }
-            // Parse the first digit
-            temp = chunk.get();
-            // Parse second digit, if present
-            byte sd = chunk.get();
-            if (sd != '.') {
-                temp = (temp-48)*10 + sd;
-                chunk.get(); // Move past the point
-            }
-            temp = (temp*10) + chunk.get() - 528;
-            if (negative) {
-                temp = -temp;
-            }
-            stations.computeIfAbsent(new String(name), k -> new Entry()).add(temp);
+            // Parse the temperature - reading can be negative, 1 or 2 integer digits, 1 DP
 
-            chunk.get(); // Skip the new line character
+            // Mark the start of the temperature reading
+            final int tempStart = chunk.position();
+
+            // Check if first character is (1 for negative, 0 for positive)
+            final int negative = ~(chunk.get(tempStart) >> 4) & 1;
+            // Check how many integer digits there are (1 for 2 digits, 0 for 1 digit)
+            final int isThree = ~(chunk.get(tempStart+negative+2) >> 4) & 1;
+
+            // Find the 3 digits (if there are only 2, d1 == d2)
+            final int d1 = chunk.get(tempStart + negative) - 48;
+            final int d2 = chunk.get(tempStart + negative + isThree);
+            final int d3 = chunk.get(tempStart + negative + isThree + 2);
+
+            // Calculate temp from 3 digits
+            final int temp = -negative ^ (d1*100*isThree + d2*10 + d3 - 528) - negative;
+
+            stations.computeIfAbsent(new String(name), k -> new Entry()).add(temp);
+            chunk.position(tempStart + negative + isThree + 4);
         }
 
         return stations;
