@@ -23,6 +23,7 @@ CI Results are from 500_000_000 row runs.
 | e61cb9f | Brancless Temperature Parsing | 12.992s | -82.187s | 86.35% |
 | 30e4b90 | Initial Station Map Capacity | 13.120s | -71.317s | 84.46% |
 | 4f88719 | Byte Span Hash Keys | 11.265s | -78.530s | 87.45% |
+| 318b362 | Initial Map Size - Avoid Resize | 9.167s | -81.191s | 89.85% |
 
 <!-- RESULTS_END -->
 
