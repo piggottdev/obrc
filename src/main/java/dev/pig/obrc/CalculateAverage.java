@@ -20,9 +20,9 @@ public class CalculateAverage {
 
     public static String run(final String input) throws IOException {
 
-        final Map<String, Entry> result = chunkify(input).parallelStream()
+        final Map<ByteSpan, Entry> result = chunkify(input).parallelStream()
                 .flatMap(chunk -> processChunk(chunk).entrySet().stream())
-                .collect(Collectors.<Map.Entry<String, Entry>, String, Entry, TreeMap<String, Entry>>toMap(
+                .collect(Collectors.<Map.Entry<ByteSpan, Entry>, ByteSpan, Entry, TreeMap<ByteSpan, Entry>>toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
                         Entry::merge,
@@ -68,9 +68,9 @@ public class CalculateAverage {
         return chunks;
     }
 
-    private static Map<String, Entry> processChunk(final MappedByteBuffer chunk) {
+    private static Map<ByteSpan, Entry> processChunk(final MappedByteBuffer chunk) {
 
-        final Map<String, Entry> stations = new HashMap<>(500);
+        final Map<ByteSpan, Entry> stations = new HashMap<>(500);
 
         while (chunk.position() < chunk.capacity()) {
 
@@ -81,8 +81,7 @@ public class CalculateAverage {
             // Move the position to one after the semicolon
             while (chunk.get() != ';') {}
             // Grab the name into a byte slice
-            final byte[] name =  new byte[(chunk.position()-1) - nameStart];
-            chunk.get(nameStart, name);
+            final ByteSpan name = new ByteSpan(nameStart, chunk.position()-(1+nameStart), chunk);
 
             // Parse the temperature - reading can be negative, 1 or 2 integer digits, 1 DP
 
@@ -102,11 +101,84 @@ public class CalculateAverage {
             // Calculate temp from 3 digits
             final int temp = -negative ^ (d1*100*isThree + d2*10 + d3 - 528) - negative;
 
-            stations.computeIfAbsent(new String(name), k -> new Entry()).add(temp);
+            stations.computeIfAbsent(name, k -> new Entry()).add(temp);
             chunk.position(tempStart + negative + isThree + 4);
         }
 
         return stations;
+    }
+
+    private static class ByteSpan implements Comparable<ByteSpan> {
+
+        private final int index;
+        private final int length;
+        private final MappedByteBuffer buffer;
+        private final int hash;
+
+        private String str;
+
+        private ByteSpan(final int index, final int length, final MappedByteBuffer buffer) {
+            this.index = index;
+            this.length = length;
+            this.buffer = buffer;
+            this.hash = this.hash();
+        }
+
+        @Override
+        public int hashCode() {
+            return this.hash;
+        }
+
+        @Override
+        public String toString() {
+            if (this.str == null) {
+                this.str = this.str();
+            }
+            return this.str;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj instanceof ByteSpan span) {
+                if (this.length != span.length) {
+                    return false;
+                }
+                for (int i = 0; i < this.length; i++) {
+                    if (this.buffer.get(this.index + i) != span.buffer.get(span.index + i)) {
+                        return false;
+                    }
+                }
+                return true;
+
+            }
+            return false;
+        }
+
+        @Override
+        public int compareTo(final ByteSpan span) {
+            if (this.str == null) {
+                this.str = this.str();
+            }
+            if (span.str == null) {
+                span.str = span.str();
+            }
+            return this.str.compareTo(span.str);
+        }
+
+        private int hash() {
+            if (this.length >= 4) {
+                return this.buffer.getInt(this.index);
+            } else {
+                return this.buffer.getShort(this.index);
+            }
+        }
+
+        private String str() {
+            final byte[] bytes = new byte[this.length];
+            this.buffer.get(this.index, bytes);
+            return new String(bytes);
+        }
+
     }
 
     private static class Entry {
@@ -116,12 +188,11 @@ public class CalculateAverage {
         private int max = Integer.MIN_VALUE;
         private int min = Integer.MAX_VALUE;
 
-        private Entry add(final int val) {
+        private void add(final int val) {
             this.count++;
             this.sum += val;
             this.max = Math.max(this.max, val);
             this.min = Math.min(this.min, val);
-            return this;
         }
 
         private Entry merge(final Entry other) {
