@@ -22,6 +22,7 @@ CI Results are from 500_000_000 row runs.
 | 0e4e52e | One Less Subtraction Per Temperature | 13.776s | -76.724s | 84.78% |
 | e61cb9f | Brancless Temperature Parsing | 12.992s | -82.187s | 86.35% |
 | 30e4b90 | Initial Station Map Capacity | 13.120s | -71.317s | 84.46% |
+| 4f88719 | Byte Span Hash Keys | 11.265s | -78.530s | 87.45% |
 
 <!-- RESULTS_END -->
 
