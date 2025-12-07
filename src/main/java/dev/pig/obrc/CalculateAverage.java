@@ -70,7 +70,7 @@ public class CalculateAverage {
 
     private static Map<String, Entry> processChunk(final MappedByteBuffer chunk) {
 
-        final Map<String, Entry> stations = new HashMap<>();
+        final Map<String, Entry> stations = new HashMap<>(500);
 
         while (chunk.position() < chunk.capacity()) {
 
