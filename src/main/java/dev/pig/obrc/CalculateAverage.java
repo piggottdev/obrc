@@ -143,13 +143,34 @@ public class CalculateAverage {
                 if (this.length != span.length) {
                     return false;
                 }
-                for (int i = 0; i < this.length; i++) {
-                    if (this.buffer.get(this.index + i) != span.buffer.get(span.index + i)) {
+
+                int i = 0;
+                while (i < this.length) {
+
+                    if (this.length - i >= 8) {
+                        if (this.buffer.getLong(this.index+i) != span.buffer.getLong(span.index+i)) {
+                            return false;
+                        }
+                        i += 8;
+                        continue;
+                    }
+
+                    if (this.length - i >= 4) {
+                        if (this.buffer.getInt(this.index+i) != span.buffer.getInt(span.index+i)) {
+                            return false;
+                        }
+                        i += 4;
+                        continue;
+                    }
+
+                    if (this.buffer.getShort(this.index+i) != span.buffer.getShort(span.index+i)) {
                         return false;
                     }
-                }
-                return true;
+                    i += 2;
 
+                }
+
+                return true;
             }
             return false;
         }
