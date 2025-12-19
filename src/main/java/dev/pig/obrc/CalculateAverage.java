@@ -78,10 +78,19 @@ public class CalculateAverage {
 
             // Mark the start of the line
             final int nameStart = chunk.position();
-            // Move the position to one after the semicolon
-            while (chunk.get() != ';') {}
+            // Find the semicolon
+            int pos = 8;
+            while (pos == 8) {
+                int x = chunk.getInt() ^ 0x3B3B3B3B;
+                int mask = x - 0x01010101;
+                mask = mask & ~x;
+                mask = mask & 0x80808080;
+                pos = Long.numberOfTrailingZeros(mask) >> 3; // 8 if no semicolon, or 0-3 inverse
+            }
+            chunk.position(chunk.position()-pos);
+
             // Grab the name into a byte slice
-            final ByteSpan name = new ByteSpan(nameStart, chunk.position()-(1+nameStart), chunk);
+            final ByteSpan name = new ByteSpan(nameStart, chunk.position()-(nameStart+1), chunk);
 
             // Parse the temperature - reading can be negative, 1 or 2 integer digits, 1 DP
 
