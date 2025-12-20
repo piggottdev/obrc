@@ -20,18 +20,19 @@ public class CalculateAverage {
 
     public static String run(final String input) throws IOException {
 
-        final Map<ByteSpan, Entry> result = chunkify(input).parallelStream()
+        final Map<ByteSpan, Station> result = chunkify(input).parallelStream()
                 .flatMap(chunk -> processChunk(chunk).entrySet().stream())
-                .collect(Collectors.<Map.Entry<ByteSpan, Entry>, ByteSpan, Entry, TreeMap<ByteSpan, Entry>>toMap(
+                .collect(Collectors.<Map.Entry<ByteSpan, Station>, ByteSpan, Station, TreeMap<ByteSpan, Station>>toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        Entry::merge,
+                        Station::merge,
                         TreeMap::new
                 ));
 
         return result.toString();
     }
 
+    // chunkify takes a filename and splits it into a list of MappedByteBuffers.
     private static List<MappedByteBuffer> chunkify(final String filename) throws IOException {
         final RandomAccessFile file = new RandomAccessFile(filename, "r");
 
@@ -68,9 +69,10 @@ public class CalculateAverage {
         return chunks;
     }
 
-    private static Map<ByteSpan, Entry> processChunk(final MappedByteBuffer chunk) {
+    // processChunk process the chunk and returns a map of ByteSpan to Station.
+    private static Map<ByteSpan, Station> processChunk(final MappedByteBuffer chunk) {
 
-        final Map<ByteSpan, Entry> stations = new HashMap<>(8192, 1.0f);
+        final Map<ByteSpan, Station> stations = new HashMap<>(8192, 1.0f);
 
         while (chunk.position() < chunk.capacity()) {
 
@@ -110,15 +112,18 @@ public class CalculateAverage {
             // Calculate temp from 3 digits
             final int temp = -negative ^ (d1*100*isThree + d2*10 + d3 - 528) - negative;
 
-            stations.computeIfAbsent(name, k -> new Entry()).add(temp);
+            stations.computeIfAbsent(name, k -> new Station()).add(temp);
             chunk.position(tempStart + negative + isThree + 4);
         }
 
         return stations;
     }
 
-    private static class ByteSpan implements Comparable<ByteSpan> {
+    // -------------------------------------------------------------------
+    // Byte Span
+    // -------------------------------------------------------------------
 
+    private static class ByteSpan implements Comparable<ByteSpan> {
         private final int index;
         private final int length;
         private final MappedByteBuffer buffer;
@@ -130,20 +135,11 @@ public class CalculateAverage {
             this.index = index;
             this.length = length;
             this.buffer = buffer;
-            this.hash = this.hash();
-        }
-
-        @Override
-        public int hashCode() {
-            return this.hash;
-        }
-
-        @Override
-        public String toString() {
-            if (this.str == null) {
-                this.str = this.str();
+            if (this.length >= 4) {
+                this.hash= this.buffer.getInt(this.index);
+            } else {
+                this.hash = this.buffer.getShort(this.index);
             }
-            return this.str;
         }
 
         @Override
@@ -185,34 +181,31 @@ public class CalculateAverage {
         }
 
         @Override
-        public int compareTo(final ByteSpan span) {
+        public String toString() {
             if (this.str == null) {
-                this.str = this.str();
+                final byte[] bytes = new byte[this.length];
+                this.buffer.get(this.index, bytes);
+                this.str = new String(bytes);
             }
-            if (span.str == null) {
-                span.str = span.str();
-            }
-            return this.str.compareTo(span.str);
+            return this.str;
         }
 
-        private int hash() {
-            if (this.length >= 4) {
-                return this.buffer.getInt(this.index);
-            } else {
-                return this.buffer.getShort(this.index);
-            }
+        @Override
+        public int hashCode() {
+            return this.hash;
         }
 
-        private String str() {
-            final byte[] bytes = new byte[this.length];
-            this.buffer.get(this.index, bytes);
-            return new String(bytes);
+        @Override
+        public int compareTo(final ByteSpan span) {
+            return this.toString().compareTo(span.toString());
         }
-
     }
 
-    private static class Entry {
+    // -------------------------------------------------------------------
+    // Station
+    // -------------------------------------------------------------------
 
+    private static class Station {
         private int count = 0;
         private long sum = 0;
         private int max = Integer.MIN_VALUE;
@@ -225,7 +218,7 @@ public class CalculateAverage {
             this.min = Math.min(this.min, val);
         }
 
-        private Entry merge(final Entry other) {
+        private Station merge(final Station other) {
             this.count += other.count;
             this.sum += other.sum;
             this.max = Math.max(max, other.max);
@@ -245,7 +238,6 @@ public class CalculateAverage {
         private static double roundAverage(final long sum, final int count) {
             return Math.round((double) sum / (double) count) / 10.0;
         }
-
     }
 
 }
