@@ -26,6 +26,7 @@ CI Results are from 500_000_000 row runs.
 | 318b362 | Initial Map Size - Avoid Resize | 9.167s | -81.191s | 89.85% |
 | 8051fca | Optimise Byte Span Equals | 10.284s | -97.445s | 90.45% |
 | a01674b | SIMD Semicolon Search | 9.555s | -75.414s | 88.75% |
+| a0536df | Inline toString and hashCode | 9.722s | -89.893s | 90.24% |
 
 <!-- RESULTS_END -->
 
