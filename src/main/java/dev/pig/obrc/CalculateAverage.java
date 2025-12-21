@@ -180,41 +180,37 @@ public class CalculateAverage {
             }
         }
 
-        @Override
-        public boolean equals(final Object obj) {
-            if (obj instanceof ByteSpan span) {
-                if (this.length != span.length) {
-                    return false;
-                }
+        public boolean equals(final ByteSpan span) {
+            if (this.length != span.length) {
+                return false;
+            }
 
-                int i = 0;
-                while (i < this.length) {
+            int i = 0;
+            while (i < this.length) {
 
-                    if (this.length - i >= 7) {
-                        if (this.buffer.getLong(this.index+i) != span.buffer.getLong(span.index+i)) {
-                            return false;
-                        }
-                        i += 8;
-                        continue;
-                    }
-
-                    if (this.length - i >= 3) {
-                        if (this.buffer.getInt(this.index+i) != span.buffer.getInt(span.index+i)) {
-                            return false;
-                        }
-                        i += 4;
-                        continue;
-                    }
-
-                    if (this.buffer.getShort(this.index+i) != span.buffer.getShort(span.index+i)) {
+                if (this.length - i >= 7) {
+                    if (this.buffer.getLong(this.index+i) != span.buffer.getLong(span.index+i)) {
                         return false;
                     }
-                    i += 2;
+                    i += 8;
+                    continue;
                 }
 
-                return true;
+                if (this.length - i >= 3) {
+                    if (this.buffer.getInt(this.index+i) != span.buffer.getInt(span.index+i)) {
+                        return false;
+                    }
+                    i += 4;
+                    continue;
+                }
+
+                if (this.buffer.getShort(this.index+i) != span.buffer.getShort(span.index+i)) {
+                    return false;
+                }
+                i += 2;
             }
-            return false;
+
+            return true;
         }
 
         @Override
