@@ -1,7 +1,11 @@
 package dev.pig.obrc;
 
+import sun.misc.Unsafe;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
+import java.nio.Buffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
@@ -72,46 +76,53 @@ public class CalculateAverage {
 
         final StationArrayMap stations = new StationArrayMap(16384);
 
-        while (chunk.position() < chunk.capacity()) {
+        long address = baseAddress(chunk);
+        long capacity = address + chunk.capacity();
+
+        while (address < capacity) {
 
             // Parse the station name - UTF8 string, delimited by ;
 
             // Mark the start of the line
-            final int nameStart = chunk.position();
+            final long lineStart = address;
+
             // Find the semicolon
-            int pos = 8;
-            while (pos == 8) {
-                int x = chunk.getInt() ^ 0x3B3B3B3B;
-                int mask = x - 0x01010101;
-                mask = mask & ~x;
-                mask = mask & 0x80808080;
-                pos = Long.numberOfTrailingZeros(mask) >> 3; // 8 if no semicolon, or 0-3 inverse
-            }
-            chunk.position(chunk.position()-pos);
+            address = address - 4;
+            int pos;
+            do {
+                address += 4;
+                int x = UNSAFE.getInt(address) ^ 0x3B3B3B3B;
+                int mask = ((x - 0x01010101) & ~x) & 0x80808080;
+                pos = Long.numberOfTrailingZeros(mask) >> 3; // 8 if no semicolon
+            } while (pos == 8);
+            address = address + pos;
 
             // Grab the name into a byte slice
-            final ByteSpan name = new ByteSpan(nameStart, chunk.position()-(nameStart+1), chunk);
+            final ByteSpan name = new ByteSpan(lineStart, (int) (address-(lineStart)));
+
 
             // Parse the temperature - reading can be negative, 1 or 2 integer digits, 1 DP
 
             // Mark the start of the temperature reading
-            final int tempStart = chunk.position();
-
+            final long tempStart = address+1;
             // Check if first character is (1 for negative, 0 for positive)
-            final int negative = ~(chunk.get(tempStart) >> 4) & 1;
+            final int negative = ~(UNSAFE.getByte(tempStart) >> 4) & 1;
             // Check how many integer digits there are (1 for 2 digits, 0 for 1 digit)
-            final int isThree = ~(chunk.get(tempStart+negative+2) >> 4) & 1;
+            final int isThree = ~(UNSAFE.getByte(tempStart+negative+2) >> 4) & 1;
 
             // Find the 3 digits (if there are only 2, d1 == d2)
-            final int d1 = chunk.get(tempStart + negative) - 48;
-            final int d2 = chunk.get(tempStart + negative + isThree);
-            final int d3 = chunk.get(tempStart + negative + isThree + 2);
+            final int d1 = UNSAFE.getByte(tempStart + negative) - 48;
+            final int d2 = UNSAFE.getByte(tempStart + negative + isThree);
+            final int d3 = UNSAFE.getByte(tempStart + negative + isThree + 2);
 
             // Calculate temp from 3 digits
             final int temp = -negative ^ (d1*100*isThree + d2*10 + d3 - 528) - negative;
 
+            // Add reading to map
             stations.getOrCreate(name).add(temp);
-            chunk.position(tempStart + negative + isThree + 4);
+
+            // Progress head to next line start
+            address = tempStart + negative + isThree + 4;
         }
 
         return stations;
@@ -162,21 +173,18 @@ public class CalculateAverage {
     // -------------------------------------------------------------------
 
     private static class ByteSpan implements Comparable<ByteSpan> {
-        private final int index;
+        private final long address;
         private final int length;
-        private final MappedByteBuffer buffer;
         private final int hash;
-
         private String str;
 
-        private ByteSpan(final int index, final int length, final MappedByteBuffer buffer) {
-            this.index = index;
+        private ByteSpan(final long address, final int length) {
+            this.address = address;
             this.length = length;
-            this.buffer = buffer;
             if (this.length >= 4) {
-                this.hash= this.buffer.getInt(this.index);
+                this.hash = UNSAFE.getInt(this.address);
             } else {
-                this.hash = this.buffer.getShort(this.index);
+                this.hash = UNSAFE.getShort(this.address);
             }
         }
 
@@ -189,7 +197,7 @@ public class CalculateAverage {
             while (i < this.length) {
 
                 if (this.length - i >= 7) {
-                    if (this.buffer.getLong(this.index+i) != span.buffer.getLong(span.index+i)) {
+                    if (UNSAFE.getLong(this.address+i) != UNSAFE.getLong(span.address+i)) {
                         return false;
                     }
                     i += 8;
@@ -197,14 +205,14 @@ public class CalculateAverage {
                 }
 
                 if (this.length - i >= 3) {
-                    if (this.buffer.getInt(this.index+i) != span.buffer.getInt(span.index+i)) {
+                    if (UNSAFE.getInt(this.address+i) != UNSAFE.getInt(span.address+i)) {
                         return false;
                     }
                     i += 4;
                     continue;
                 }
 
-                if (this.buffer.getShort(this.index+i) != span.buffer.getShort(span.index+i)) {
+                if (UNSAFE.getShort(this.address+i) != UNSAFE.getShort(span.address+i)) {
                     return false;
                 }
                 i += 2;
@@ -217,7 +225,7 @@ public class CalculateAverage {
         public String toString() {
             if (this.str == null) {
                 final byte[] bytes = new byte[this.length];
-                this.buffer.get(this.index, bytes);
+                UNSAFE.copyMemory(null, this.address, bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, this.length);
                 this.str = new String(bytes);
             }
             return this.str;
@@ -270,6 +278,32 @@ public class CalculateAverage {
 
         private static double roundAverage(final long sum, final int count) {
             return Math.round((double) sum / (double) count) / 10.0;
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // Unsafe
+    // -------------------------------------------------------------------
+
+    private final static Unsafe UNSAFE = getUnsafe();
+
+    private static Unsafe getUnsafe() {
+        try {
+            final Field f = Unsafe.class.getDeclaredField("theUnsafe");
+            f.setAccessible(true);
+            return (Unsafe) f.get(null);
+        } catch (final NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static long baseAddress(final MappedByteBuffer mbb) {
+        try {
+            final Field addressF = Buffer.class.getDeclaredField("address");
+            addressF.setAccessible(true);
+            return addressF.getLong(mbb);
+        } catch (final NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 

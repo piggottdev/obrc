@@ -29,7 +29,7 @@ jobs:
       - name: Run benchmark
         run: |
           cd out
-          java dev.pig.obrc.pipeline.Runner
+          java --add-opens java.base/java.nio=ALL-UNNAMED dev.pig.obrc.pipeline.Runner
 
       - name: Commit Results
         run: |
