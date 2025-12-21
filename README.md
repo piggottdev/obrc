@@ -27,6 +27,7 @@ CI Results are from 500_000_000 row runs.
 | 8051fca | Optimise Byte Span Equals | 10.284s | -97.445s | 90.45% |
 | a01674b | SIMD Semicolon Search | 9.555s | -75.414s | 88.75% |
 | a0536df | Inline toString and hashCode | 9.722s | -89.893s | 90.24% |
+| 4e760fd | Linear Probe Map | 7.684s | -88.517s | 92.01% |
 
 <!-- RESULTS_END -->
 
