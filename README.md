@@ -28,6 +28,7 @@ CI Results are from 500_000_000 row runs.
 | a01674b | SIMD Semicolon Search | 9.555s | -75.414s | 88.75% |
 | a0536df | Inline toString and hashCode | 9.722s | -89.893s | 90.24% |
 | 4e760fd | Linear Probe Map | 7.684s | -88.517s | 92.01% |
+| 7937341 | Linear Probe Wrap Around | 7.468s | -84.410s | 91.87% |
 
 <!-- RESULTS_END -->
 
