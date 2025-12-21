@@ -6,6 +6,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CalculateAverage {
 
@@ -21,7 +22,7 @@ public class CalculateAverage {
     public static String run(final String input) throws IOException {
 
         final Map<ByteSpan, Station> result = chunkify(input).parallelStream()
-                .flatMap(chunk -> processChunk(chunk).entrySet().stream())
+                .flatMap(chunk -> processChunk(chunk).entryList().stream())
                 .collect(Collectors.<Map.Entry<ByteSpan, Station>, ByteSpan, Station, TreeMap<ByteSpan, Station>>toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
@@ -70,9 +71,9 @@ public class CalculateAverage {
     }
 
     // processChunk process the chunk and returns a map of ByteSpan to Station.
-    private static Map<ByteSpan, Station> processChunk(final MappedByteBuffer chunk) {
+    private static StationArrayMap processChunk(final MappedByteBuffer chunk) {
 
-        final Map<ByteSpan, Station> stations = new HashMap<>(8192, 1.0f);
+        final StationArrayMap stations = new StationArrayMap(8192);
 
         while (chunk.position() < chunk.capacity()) {
 
@@ -112,11 +113,51 @@ public class CalculateAverage {
             // Calculate temp from 3 digits
             final int temp = -negative ^ (d1*100*isThree + d2*10 + d3 - 528) - negative;
 
-            stations.computeIfAbsent(name, k -> new Station()).add(temp);
+            stations.getOrCreate(name).add(temp);
             chunk.position(tempStart + negative + isThree + 4);
         }
 
         return stations;
+    }
+
+    // -------------------------------------------------------------------
+    // Station Array Map
+    // -------------------------------------------------------------------
+
+    private static class StationArrayMap {
+        private final int mask;
+        private final ByteSpan[] keys;
+        private final Station[] values;
+
+        private final ArrayList<Map.Entry<ByteSpan, Station>> entries;
+
+        private StationArrayMap(final int capacity) {
+            this.mask = capacity - 1;
+            this.keys = new ByteSpan[capacity];
+            this.values = new Station[capacity];
+            this.entries = new ArrayList<>(capacity>>2);
+        }
+
+        private Station getOrCreate(final ByteSpan k) {
+            int b = (k.hash ^ (k.hash >> 16)) & this.mask;
+
+            ByteSpan e = this.keys[b];
+            while (e != null && (e.hash != k.hash || !e.equals(k))) {
+                b++;
+                e = this.keys[b];
+            }
+            if (e == null) {
+                this.keys[b] = k;
+                this.values[b] = new Station();
+                this.entries.add(Map.entry(k, this.values[b]));
+            }
+
+            return this.values[b];
+        }
+
+        private List<Map.Entry<ByteSpan, Station>> entryList() {
+            return this.entries;
+        }
     }
 
     // -------------------------------------------------------------------
