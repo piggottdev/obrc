@@ -6,21 +6,18 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CalculateAverage {
 
     private static final String INPUT = "./measurements.txt";
 
     public static void main(final String[] args) throws IOException {
-
         final String input = args.length >= 1 ? args[0] : INPUT;
 
         System.out.println(run(input));
     }
 
     public static String run(final String input) throws IOException {
-
         final Map<ByteSpan, Station> result = chunkify(input).parallelStream()
                 .flatMap(chunk -> processChunk(chunk).entryList().stream())
                 .collect(Collectors.<Map.Entry<ByteSpan, Station>, ByteSpan, Station, TreeMap<ByteSpan, Station>>toMap(
@@ -73,7 +70,7 @@ public class CalculateAverage {
     // processChunk process the chunk and returns a map of ByteSpan to Station.
     private static StationArrayMap processChunk(final MappedByteBuffer chunk) {
 
-        final StationArrayMap stations = new StationArrayMap(8192);
+        final StationArrayMap stations = new StationArrayMap(16384);
 
         while (chunk.position() < chunk.capacity()) {
 
@@ -135,7 +132,7 @@ public class CalculateAverage {
             this.mask = capacity - 1;
             this.keys = new ByteSpan[capacity];
             this.values = new Station[capacity];
-            this.entries = new ArrayList<>(capacity>>2);
+            this.entries = new ArrayList<>(capacity>>4);
         }
 
         private Station getOrCreate(final ByteSpan k) {
@@ -143,7 +140,7 @@ public class CalculateAverage {
 
             ByteSpan e = this.keys[b];
             while (e != null && (e.hash != k.hash || !e.equals(k))) {
-                b++;
+                b = (b+1) & this.mask;
                 e = this.keys[b];
             }
             if (e == null) {
@@ -193,7 +190,7 @@ public class CalculateAverage {
                 int i = 0;
                 while (i < this.length) {
 
-                    if (this.length - i >= 8) {
+                    if (this.length - i >= 7) {
                         if (this.buffer.getLong(this.index+i) != span.buffer.getLong(span.index+i)) {
                             return false;
                         }
@@ -201,7 +198,7 @@ public class CalculateAverage {
                         continue;
                     }
 
-                    if (this.length - i >= 4) {
+                    if (this.length - i >= 3) {
                         if (this.buffer.getInt(this.index+i) != span.buffer.getInt(span.index+i)) {
                             return false;
                         }
@@ -213,7 +210,6 @@ public class CalculateAverage {
                         return false;
                     }
                     i += 2;
-
                 }
 
                 return true;
