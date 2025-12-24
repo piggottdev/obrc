@@ -87,12 +87,12 @@ public class CalculateAverage {
             final long lineStart = address;
 
             // Find the semicolon
-            address = address - 4;
+            address = address - 8;
             int pos;
             do {
-                address += 4;
-                int x = UNSAFE.getInt(address) ^ 0x3B3B3B3B;
-                int mask = ((x - 0x01010101) & ~x) & 0x80808080;
+                address += 8;
+                long x = UNSAFE.getLong(address) ^ 0x3B3B3B3B3B3B3B3BL;
+                long mask = ((x - 0x0101010101010101L) & ~x) & 0x8080808080808080L;
                 pos = Long.numberOfTrailingZeros(mask) >> 3; // 8 if no semicolon
             } while (pos == 8);
             address = address + pos;
