@@ -31,6 +31,7 @@ CI Results are from 500_000_000 row runs.
 | 7937341 | Linear Probe Wrap Around | 7.468s | -84.410s | 91.87% |
 | 251c907 | No Type Check Equals ByteSpan | 7.503s | -79.757s | 91.40% |
 | 9d2726f | Unsafe | 5.819s | -86.419s | 93.69% |
+| 6acc580 | 8-bit Semicolon SIMD Search | 5.651s | -84.849s | 93.76% |
 
 <!-- RESULTS_END -->
 
