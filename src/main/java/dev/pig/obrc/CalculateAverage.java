@@ -137,13 +137,10 @@ public class CalculateAverage {
         private final ByteSpan[] keys;
         private final Station[] values;
 
-        private final ArrayList<Map.Entry<ByteSpan, Station>> entries;
-
         private StationArrayMap(final int capacity) {
             this.mask = capacity - 1;
             this.keys = new ByteSpan[capacity];
             this.values = new Station[capacity];
-            this.entries = new ArrayList<>(capacity>>4);
         }
 
         private Station getOrCreate(final ByteSpan k) {
@@ -157,14 +154,20 @@ public class CalculateAverage {
             if (e == null) {
                 this.keys[b] = k;
                 this.values[b] = new Station();
-                this.entries.add(Map.entry(k, this.values[b]));
             }
 
             return this.values[b];
         }
 
         private List<Map.Entry<ByteSpan, Station>> entryList() {
-            return this.entries;
+            final List<Map.Entry<ByteSpan, Station>> l = new ArrayList<>(this.keys.length>>4);
+            for (int i = 0; i < this.keys.length; i++) {
+                if (this.keys[i] != null) {
+                    l.add(Map.entry(this.keys[i], this.values[i]));
+                }
+            }
+
+            return l;
         }
     }
 
