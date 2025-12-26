@@ -33,6 +33,7 @@ CI Results are from 500_000_000 row runs.
 | 9d2726f | Unsafe | 5.819s | -86.419s | 93.69% |
 | 6acc580 | 8-bit Semicolon SIMD Search | 5.651s | -84.849s | 93.76% |
 | a71e90b | Better Hash | 5.469s | -88.123s | 94.16% |
+| 9af9649 | Remove Entry List | 5.161s | -82.690s | 94.13% |
 
 <!-- RESULTS_END -->
 
