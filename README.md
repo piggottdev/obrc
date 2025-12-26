@@ -32,6 +32,7 @@ CI Results are from 500_000_000 row runs.
 | 251c907 | No Type Check Equals ByteSpan | 7.503s | -79.757s | 91.40% |
 | 9d2726f | Unsafe | 5.819s | -86.419s | 93.69% |
 | 6acc580 | 8-bit Semicolon SIMD Search | 5.651s | -84.849s | 93.76% |
+| 98ae0c0 | Merge branch 'main' of github.com:PiggottDev/obrc | 5.082s | -87.569s | 94.51% |
 
 <!-- RESULTS_END -->
 
