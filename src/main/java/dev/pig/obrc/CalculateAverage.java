@@ -147,7 +147,7 @@ public class CalculateAverage {
         }
 
         private Station getOrCreate(final ByteSpan k) {
-            int b = (k.hash ^ (k.hash >> 16)) & this.mask;
+            int b = (k.hash ^ (k.hash >> 13) ^ (k.hash >> 16)) & this.mask;
 
             ByteSpan e = this.keys[b];
             while (e != null && (e.hash != k.hash || !e.equals(k))) {
