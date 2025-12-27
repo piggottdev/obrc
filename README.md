@@ -34,6 +34,7 @@ CI Results are from 500_000_000 row runs.
 | 6acc580 | 8-bit Semicolon SIMD Search | 5.651s | -84.849s | 93.76% |
 | a71e90b | Better Hash | 5.469s | -88.123s | 94.16% |
 | 9af9649 | Remove Entry List | 5.161s | -82.690s | 94.13% |
+| a972023 | Tweak Array Sizes | 5.173s | -85.055s | 94.27% |
 
 <!-- RESULTS_END -->
 
