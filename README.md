@@ -35,6 +35,7 @@ CI Results are from 500_000_000 row runs.
 | a71e90b | Better Hash | 5.469s | -88.123s | 94.16% |
 | 9af9649 | Remove Entry List | 5.161s | -82.690s | 94.13% |
 | a972023 | Tweak Array Sizes | 5.173s | -85.055s | 94.27% |
+| 2dad99f | Tree Map End Only | 5.559s | -92.739s | 94.34% |
 
 <!-- RESULTS_END -->
 
