@@ -74,7 +74,7 @@ public class CalculateAverage {
     // processChunk process the chunk and returns a map of ByteSpan to Station.
     private static StationArrayMap processChunk(final MappedByteBuffer chunk) {
 
-        final StationArrayMap stations = new StationArrayMap(16384);
+        final StationArrayMap stations = new StationArrayMap(8192);
 
         long address = baseAddress(chunk);
         long capacity = address + chunk.capacity();
@@ -160,7 +160,7 @@ public class CalculateAverage {
         }
 
         private List<Map.Entry<ByteSpan, Station>> entryList() {
-            final List<Map.Entry<ByteSpan, Station>> l = new ArrayList<>(this.keys.length>>4);
+            final List<Map.Entry<ByteSpan, Station>> l = new ArrayList<>(512);
             for (int i = 0; i < this.keys.length; i++) {
                 if (this.keys[i] != null) {
                     l.add(Map.entry(this.keys[i], this.values[i]));
