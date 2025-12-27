@@ -9,7 +9,7 @@ import java.nio.Buffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.BiConsumer;
 
 public class CalculateAverage {
 
@@ -22,16 +22,17 @@ public class CalculateAverage {
     }
 
     public static String run(final String input) throws IOException {
-        final Map<ByteSpan, Station> result = chunkify(input).parallelStream()
-                .flatMap(chunk -> processChunk(chunk).entryList().stream())
-                .collect(Collectors.<Map.Entry<ByteSpan, Station>, ByteSpan, Station, TreeMap<ByteSpan, Station>>toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        Station::merge,
-                        TreeMap::new
-                ));
+        final List<StationArrayMap> chunks = chunkify(input).parallelStream()
+                .map(CalculateAverage::processChunk)
+                .toList();
 
-        return result.toString();
+        for (int i = 1; i < chunks.size(); i++) {
+            chunks.getFirst().merge(chunks.get(i));
+        }
+        final TreeMap<ByteSpan, Station> sorted = new TreeMap<>();
+        chunks.getFirst().forEach(sorted::put);
+
+        return sorted.toString();
     }
 
     // chunkify takes a filename and splits it into a list of MappedByteBuffers.
@@ -159,15 +160,16 @@ public class CalculateAverage {
             return this.values[b];
         }
 
-        private List<Map.Entry<ByteSpan, Station>> entryList() {
-            final List<Map.Entry<ByteSpan, Station>> l = new ArrayList<>(512);
+        private void merge(final StationArrayMap other) {
+            other.forEach((k, v) -> this.getOrCreate(k).merge(v));
+        }
+
+        private void forEach(final BiConsumer<ByteSpan, Station> consumer) {
             for (int i = 0; i < this.keys.length; i++) {
                 if (this.keys[i] != null) {
-                    l.add(Map.entry(this.keys[i], this.values[i]));
+                    consumer.accept(this.keys[i], this.values[i]);
                 }
             }
-
-            return l;
         }
     }
 
@@ -262,12 +264,11 @@ public class CalculateAverage {
             this.min = Math.min(this.min, val);
         }
 
-        private Station merge(final Station other) {
+        private void merge(final Station other) {
             this.count += other.count;
             this.sum += other.sum;
             this.max = Math.max(max, other.max);
             this.min = Math.min(min, other.min);
-            return this;
         }
 
         @Override
